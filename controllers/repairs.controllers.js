@@ -1,103 +1,53 @@
 const Repairs = require('../models/repairs.model');
 const Users = require('../models/users.model');
+const AppError = require('../utils/appError');
+const { appSuccess } = require('../utils/appSuccess');
+const { catchAsync } = require('../utils/catchAsync');
 
-exports.getAllMotorcyclePendingList = async (req, res) => {
-  try {
-    const repairs = await Repairs.findAll({
-      where: {
-        status: 'pending',
+exports.getAllMotorcyclePendingList = catchAsync(async (req, res, next) => {
+  const repairs = await Repairs.findAll({
+    attributes: { exclude: ['createdAt', 'updatedAt', 'userId'] },
+    where: {
+      status: 'pending',
+    },
+    include: [
+      {
+        model: Users,
+        attributes: { exclude: ['createdAt', 'updatedAt', 'password'] },
       },
-    });
-    res.status(200).json({
-      status: 'success',
-      message: 'ROUTER - GET',
-      repairs,
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: 'fail',
-      message: 'Internal Server Error',
-    });
-  }
-};
+    ],
+  });
+  appSuccess(res, 200, 'Repairs obtained', { repairs });
+});
 
-exports.getPendingMotorcycletById = async (req, res) => {
-  try {
-    const { repair } = req;
-    res.json({
-      status: 'success',
-      message: 'ROUTER - GET BY ID',
-      repair,
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: 'fail',
-      message: 'Internal Server Error',
-    });
-  }
-};
+exports.getPendingMotorcycletById = catchAsync(async (req, res, next) => {
+  const { repair } = req;
+  appSuccess(res, 200, 'Repair obtained successfully', { repair });
+});
 
-exports.createAppointment = async (req, res) => {
-  try {
-    const { date, userId } = req.body;
-    const user = await Users.findOne({
-      where: {
-        id: userId,
-        status: 'available',
-      },
-    });
-    if (!user) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'User has not been found',
-      });
-    }
-    const newRepair = await Repairs.create({
-      date,
-      userId,
-    });
-    res.status(201).json({
-      status: 'success',
-      message: `The appointment has been created successfully by ${user.name}`,
-      newRepair,
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: 'fail',
-      message: 'Internal Server Error',
-    });
-  }
-};
+exports.createAppointment = catchAsync(async (req, res, next) => {
+  const { date, userId, motorsNumber, description } = req.body;
+  const { user } = req;
+  const newRepair = await Repairs.create({
+    date,
+    userId,
+    motorsNumber,
+    description,
+  });
+  const message = `The appointment has been created successfully by ${user.name}`;
+  appSuccess(res, 201, message, { newRepair });
+});
 
-exports.updateStatusRepair = async (req, res) => {
-  try {
-    const { repair } = req;
-    const updatedRepair = await repair.update({ status: 'completed' });
-    res.json({
-      status: 'success',
-      message: 'The repair has been completed successfully',
-      updatedRepair,
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: 'fail',
-      message: 'Internal Server Error',
-    });
-  }
-};
+exports.updateStatusRepair = catchAsync(async (req, res, next) => {
+  const { repair } = req;
+  const updatedRepair = await repair.update({ status: 'completed' });
+  const message = 'The repair has been completed successfully';
+  appSuccess(res, 200, message, updatedRepair);
+});
 
-exports.cancelRepair = async (req, res) => {
-  try {
-    const { repair } = req;
-    await repair.update({ status: 'cancelled' });
-    res.json({
-      status: 'success',
-      message: 'The repair has been cancelled successfully',
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: 'fail',
-      message: 'Internal Server Error',
-    });
-  }
-};
+exports.cancelRepair = catchAsync(async (req, res, next) => {
+  const { repair } = req;
+  await repair.update({ status: 'cancelled' });
+  const message = 'The repair has been cancelled successfully';
+  appSuccess(res, 200, message);
+});

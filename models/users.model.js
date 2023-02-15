@@ -21,15 +21,13 @@ const Users = db.define('users', {
     allowNull: false,
   },
   role: {
-    type: DataTypes.STRING,
+    type: DataTypes.ENUM(['client', 'employee']),
     allowNull: false,
-    enum: ['client', 'employee'],
   },
   status: {
     type: DataTypes.STRING,
     allowNull: false,
     defaultValue: 'available',
-    enum: ['available', 'unavailable'],
   },
 });
 module.exports = Users;

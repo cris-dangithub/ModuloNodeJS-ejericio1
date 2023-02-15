@@ -22,10 +22,12 @@ router.post(
   '/',
   [
     check('name', 'Username must be mandatory').not().isEmpty(),
+    check('name', 'Username must be a string').isString(),
     check('email', 'Email must be mandatory').not().isEmpty(),
     check('email', 'Email must have in a correct format').isEmail(),
     check('password', 'Password must be mandatory').not().isEmpty(),
     check('role', 'Role must be mandatory').not().isEmpty(),
+    check('role', 'Role must be mandatory').isString(),
     validFields,
   ],
   validUserByEmail,

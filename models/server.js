@@ -4,6 +4,9 @@ const { usersRouter } = require('../routes/users.routes');
 const { repairsRouter } = require('../routes/repairs.routes');
 const { db } = require('../database/db');
 const morgan = require('morgan');
+const AppError = require('../utils/appError');
+const { globalErrorHandler } = require('../controllers/error.controller');
+const { initModel } = require('./init.model');
 
 class Server {
   constructor() {
@@ -20,17 +23,31 @@ class Server {
   }
 
   database() {
+    // ---- Autenticación de la base de datos ---- //
     db.authenticate()
       .then(res => console.log('Database authenticated'))
       .catch(err => console.log(err));
+    // ---- Establecer modelos ---- //
+    initModel();
+    // ---- Sincronizar la base de datos ---- //
     db.sync()
       .then(res => console.log('Database synced'))
       .catch(err => console.log(err));
   }
 
   routes() {
+    // Este endpoint lleva a lo relacionado con los usuarios
     this.app.use(this.paths.users, usersRouter);
+    // Esta endpoint lleva a lo relacionado con las reparaciones
     this.app.use(this.paths.repairs, repairsRouter);
+    // Este middleware es para errores relacionados a endpoints inexistentes
+    this.app.use('*', (req, res, next) => {
+      return next(
+        new AppError(`Can't find ${req.originalUrl} on this Server!`, 404)
+      );
+    });
+    // Este middleware permite centralizar los errores
+    this.app.use(globalErrorHandler);
   }
 
   middlewares() {

@@ -23,8 +23,13 @@ router.post(
   [
     check('date', 'Date must be mandatory').not().isEmpty(),
     check('userId', 'UserID must be mandatory').not().isEmpty(),
+    check('userId', 'UserID must be a number').isNumeric(),
+    check('motorsNumber', 'motorsNumber must be mandatory').not().isEmpty(),
+    check('motorsNumber', 'motorsNumber must be ').isNumeric(),
+    check('description', 'Description must be mandatory').not().isEmpty(),
+    check('description', 'Description must be a string').isString(),
     validFields,
-    validIfUserExists,
+    validIfUserExists, // Este middleware viene de los middelwares de usuarios
   ],
   createAppointment
 );
