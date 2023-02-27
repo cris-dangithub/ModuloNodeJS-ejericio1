@@ -1,16 +1,17 @@
 const {
   getAllUsers,
   getUserById,
-  createUser,
   updateUserById,
   deleteUserById,
+  loginUser,
 } = require('../controllers/users.controllers');
 
 const { Router } = require('express');
+const { validIfUserExists } = require('../middlewares/users.middlewares');
 const {
-  validIfUserExists,
-  validUserByEmail,
-} = require('../middlewares/users.middlewares');
+  protect,
+  protectAccountOwner,
+} = require('../middlewares/auth.middleware');
 const { check } = require('express-validator');
 const { validFields } = require('../middlewares/validFields');
 
@@ -18,23 +19,21 @@ const router = Router();
 
 router.get('/', getAllUsers);
 router.get('/:id', validIfUserExists, getUserById);
-router.post(
-  '/',
+
+// ------ Rutas protegidas ------
+router.use(protect);
+router.patch(
+  '/:id',
   [
-    check('name', 'Username must be mandatory').not().isEmpty(),
-    check('name', 'Username must be a string').isString(),
-    check('email', 'Email must be mandatory').not().isEmpty(),
-    check('email', 'Email must have in a correct format').isEmail(),
-    check('password', 'Password must be mandatory').not().isEmpty(),
-    check('role', 'Role must be mandatory').not().isEmpty(),
-    check('role', 'Role must be mandatory').isString(),
+    check('email', 'Email must have in a correct format').optional().isEmail(),
+    check('name', 'Name must be a string').isString(),
     validFields,
+    validIfUserExists,
+    protectAccountOwner,
   ],
-  validUserByEmail,
-  createUser
+  updateUserById
 );
-router.patch('/:id', validIfUserExists, updateUserById);
-router.delete('/:id', validIfUserExists, deleteUserById);
+router.delete('/:id', [validIfUserExists, protectAccountOwner], deleteUserById);
 
 module.exports = {
   usersRouter: router,

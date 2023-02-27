@@ -1,3 +1,4 @@
+const { check } = require('express-validator');
 const Users = require('../models/users.model');
 const AppError = require('../utils/appError');
 const { appSuccess } = require('../utils/appSuccess');
@@ -53,3 +54,5 @@ exports.validUserByEmail = catchAsync(async (req, res, next) => {
   }
   next();
 });
+
+

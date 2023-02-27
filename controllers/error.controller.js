@@ -51,6 +51,13 @@ const globalErrorHandler = (err, req, res, next) => {
     if (err.parent?.code === '22P02') err = handle500FalseErrors(err, 400);
     // Formato de fecha inválida
     if (err.parent?.code === '22007') err = handle500FalseErrors(err, 400);
+    // Lo mas probbable es que el token fue malobrado
+    if (err.name === 'JsonWebTokenError') err = handle500FalseErrors(err, 401);
+    // El token expiró
+    if (err.name === 'TokenExpiredError') {
+      const objMessage = { message: 'Token expired, please login again' };
+      err = handle500FalseErrors(objMessage, 401);
+    }
 
     sendErrorProd(err, res);
   }

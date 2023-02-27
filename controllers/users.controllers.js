@@ -1,6 +1,8 @@
+const { genSalt, hash } = require('bcryptjs');
 const Users = require('../models/users.model');
 const { appSuccess } = require('../utils/appSuccess');
 const { catchAsync } = require('../utils/catchAsync');
+const { generateJWT } = require('../utils/jwt');
 
 exports.getAllUsers = catchAsync(async (req, res) => {
   const users = await Users.findAll({
@@ -21,19 +23,6 @@ exports.getUserById = catchAsync(async (req, res) => {
   appSuccess(res, 200, 'User obtained successfully', { user });
 });
 
-exports.createUser = catchAsync(async (req, res) => {
-  const { name, email, password, role = 'client' } = req.body;
-
-  // Crear usuario
-  const newUser = await Users.create({
-    name: name.toLowerCase(),
-    email: email.toLowerCase(),
-    password,
-    role: role.toLowerCase(),
-  });
-  appSuccess(res, 201, 'User created successfully', { newUser });
-});
-
 exports.updateUserById = catchAsync(async (req, res) => {
   const { name, email } = req.body;
   const { user } = req;
@@ -51,3 +40,5 @@ exports.deleteUserById = catchAsync(async (req, res) => {
   });
   appSuccess(res, 200, 'User has been deleted successfully');
 });
+
+

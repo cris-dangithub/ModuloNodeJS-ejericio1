@@ -7,6 +7,7 @@ const {
   updateStatusRepair,
   cancelRepair,
 } = require('../controllers/repairs.controllers');
+const { restrictTo } = require('../middlewares/auth.middleware');
 const {
   validRepairById,
   validIfCanceledRepair,
@@ -16,8 +17,13 @@ const { validFields } = require('../middlewares/validFields');
 
 const router = Router();
 
-router.get('/', getAllMotorcyclePendingList);
-router.get('/:id', validRepairById, getPendingMotorcycletById);
+router.get('/', restrictTo('employee'), getAllMotorcyclePendingList);
+router.get(
+  '/:id',
+  restrictTo('employee'),
+  validRepairById,
+  getPendingMotorcycletById
+);
 router.post(
   '/',
   [
@@ -33,8 +39,20 @@ router.post(
   ],
   createAppointment
 );
-router.patch('/:id', validRepairById, updateStatusRepair);
-router.delete('/:id', validIfCanceledRepair, validRepairById, cancelRepair);
+
+router.patch(
+  '/:id',
+  restrictTo('employee'),
+  validRepairById,
+  updateStatusRepair
+);
+router.delete(
+  '/:id',
+  restrictTo('employee'),
+  validIfCanceledRepair,
+  validRepairById,
+  cancelRepair
+);
 
 module.exports = {
   repairsRouter: router,

@@ -7,6 +7,7 @@ const morgan = require('morgan');
 const AppError = require('../utils/appError');
 const { globalErrorHandler } = require('../controllers/error.controller');
 const { initModel } = require('./init.model');
+const { authRouter } = require('../routes/auth.routes');
 
 class Server {
   constructor() {
@@ -36,8 +37,12 @@ class Server {
   }
 
   routes() {
+    // Este endpoint me lleva a autorización y auntenticación relacionada a usuarios
+    this.app.use(this.paths.users, authRouter);
+    
     // Este endpoint lleva a lo relacionado con los usuarios
     this.app.use(this.paths.users, usersRouter);
+
     // Esta endpoint lleva a lo relacionado con las reparaciones
     this.app.use(this.paths.repairs, repairsRouter);
     // Este middleware es para errores relacionados a endpoints inexistentes
