@@ -1,18 +1,28 @@
-const express = require('express');
+const { default: helmet } = require('helmet');
+const { rateLimit } = require('express-rate-limit');
 const cors = require('cors');
-const { usersRouter } = require('../routes/users.routes');
-const { repairsRouter } = require('../routes/repairs.routes');
-const { db } = require('../database/db');
+const express = require('express');
+const hpp = require('hpp');
 const morgan = require('morgan');
-const AppError = require('../utils/appError');
+const xss = require('xss-clean');
+
+const { authRouter } = require('../routes/auth.routes');
+const { db } = require('../database/db');
 const { globalErrorHandler } = require('../controllers/error.controller');
 const { initModel } = require('./init.model');
-const { authRouter } = require('../routes/auth.routes');
+const { repairsRouter } = require('../routes/repairs.routes');
+const { usersRouter } = require('../routes/users.routes');
+const AppError = require('../utils/appError');
 
 class Server {
   constructor() {
     this.app = express();
     this.port = process.env.PORT || 4000;
+    this.limiter = rateLimit({
+      max: 100,
+      windowMs: 60 * 60 * 1000,
+      message: `Too many request from this IP`,
+    });
     this.paths = {
       users: '/api/v1/users',
       repairs: '/api/v1/repairs',
@@ -39,7 +49,7 @@ class Server {
   routes() {
     // Este endpoint me lleva a autorización y auntenticación relacionada a usuarios
     this.app.use(this.paths.users, authRouter);
-    
+
     // Este endpoint lleva a lo relacionado con los usuarios
     this.app.use(this.paths.users, usersRouter);
 
@@ -56,7 +66,11 @@ class Server {
   }
 
   middlewares() {
+    this.app.use(helmet());
+    this.app.use(xss());
+    this.app.use(hpp());
     if (process.env.NODE_ENV === 'development') this.app.use(morgan('dev'));
+    this.app.use('/api/v1', this.limiter);
     this.app.use(cors());
     this.app.use(express.json());
   }
